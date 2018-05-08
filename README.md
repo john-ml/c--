@@ -76,3 +76,5 @@ in the right order and passing the resulting file to `c--`:
 #include "init_store1111.h"
 #include "vm.h"
 ```
+
+The generated files include comments describing the implementation in more detail.
