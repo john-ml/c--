@@ -1,4 +1,6 @@
 /*
+  Functional approach
+
   Inputs are tuples (a, b, ...) that get applied to
   functions from right to left.
 
@@ -8,9 +10,6 @@
 
   We can use this to create a stack machine.
 */
-
-// space used to defer evaluation
-#define __ 
 
 // unpack values
 #define $(...) __VA_ARGS__
@@ -27,14 +26,31 @@
 // discard the top element
 #define pop(x, ...) (__VA_ARGS__)
 
-// do nothing (needed for timing)
-#define nop(...) (__VA_ARGS__)
-
 // swap the top two elements
 #define swp(x, y, ...) (y, x, __VA_ARGS__)
 
 // send the top element to the end
 #define cyc(x, ...) (__VA_ARGS__, x)
+
+/*
+  Parent expressions may be evaluated before their children are ready:
+    swp(1 _ (2)) will give an error (swp expects 3 args but got 2)
+  
+  So need to delay evaluation of (1 _ (2)) until it becomes (1, 2)
+*/
+
+// do nothing (needed for timing)
+#define nop(...) (__VA_ARGS__)
+#define nop2 nop nop
+#define nop4 nop2 nop2
+#define nop8 nop4 nop4
+#define nop16 nop8 nop8
+#define nop32 nop16 nop16
+#define nop64 nop32 nop32
+#define nop128 nop64 nop64
+#define nop256 nop128 nop128
+#define nop512 nop256 nop256
+#define nop1024 nop512 nop512
 
 /*
   Tuples can be used to represent natural numbers:
@@ -55,9 +71,6 @@
 
 // add 1 to the top element
 #define succ(n, ...) (($ n, s), __VA_ARGS__)
-
-// subtract 1 from the top element
-#define pred(n, ...) (($ zero _ pop pop n), __VA_ARGS__)
 
 // add the top two elements
 #define plus(n, m, ...) (($ n, $ pop m), __VA_ARGS__)
@@ -85,8 +98,16 @@
 #define or(p, q, ...) if (p, true, top if (q, true, false), __VA_ARGS__)
 #define not(p, ...) if (p, false, true, __VA_ARGS__)
 
-#define f(p, ...) if nop nop nop (top isempty (p), zero, plus nop nop nop nop p f top pred p, __VA_ARGS__)
+/*
+  Use conditional expressions to build more complicated arithmetic operators.
+*/
 
-// force above definitions to persist in future passes
-#define wrap(x) x
-wrap(#include __FILE__)
+// subtract 1 from the top element
+#define pred(n, ...) if nop nop nop (top isempty (pop pop n), zero, ($ zero _ pop pop n), __VA_ARGS__)
+
+/*
+  The definitions above need to persist across preprocessor passes.
+  To do this, define macro to generate an include statement for the current
+  file that is only evaluated on the next pass (avoiding circularity).
+*/
+#define persist #include __FILE__

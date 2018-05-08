@@ -1,12 +1,11 @@
-#include "prelude.h"
+// a separate header file must be used for definitions that
+// need to persist across preprocessor passes
+#include "examples.h"
 
 cyc cyc cyc (1, 2, 3, 4, 5)
 
 // nop necessary to make preprocessor wait for the _'s to finish
-swp nop nop (a _ (b _ (c, d)))
-
-// (2 + 2 = 4) - 1 = 3 (not-so-quick maths)
-pred plus succ succ swp succ succ dup (zero)
+swp nop2 (a _ (b _ (c, d)))
 
 // isempty
 isempty ((3, ))
@@ -31,7 +30,13 @@ or (true, true)
 not (false, )
 not (true, )
 
-top (pred succ succ (zero))
-top (pred succ (zero))
-// f succ (zero)
+// arithmetic
+top pred (zero)
+top pred succ succ (zero)
+top pred succ (zero)
 
+// (2 + 2 = 4) - 1 = 3 (not-so-quick maths)
+pred plus succ succ swp succ succ dup (zero)
+
+// 1 + 2 + ... + 11 = 11 * 12 / 2 = 66
+triangular succ succ succ succ succ succ succ succ succ succ succ (zero)
