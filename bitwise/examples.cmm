@@ -1,0 +1,7 @@
+#include "util.h"
+
+DEFINE() TEST() () 1
+DEFINE() ARG2() () TEST
+DEFINE() ARG1() () DESTINATION
+INCLUDE() "movb.h"
+DESTINATION()
