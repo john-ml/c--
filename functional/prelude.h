@@ -2,12 +2,15 @@
   Inputs are tuples (a, b, ...) that get applied to
   functions from right to left.
 
-  Most funnctions will take tuples and return tuples.
+  Most functions will take tuples and return tuples.
 
   e.g. f g (1, 2) will apply g to (1, 2), then f to the result.
 
   We can use this to create a stack machine.
 */
+
+// space used to defer evaluation
+#define __ 
 
 // unpack values
 #define $(...) __VA_ARGS__
@@ -24,7 +27,7 @@
 // discard the top element
 #define pop(x, ...) (__VA_ARGS__)
 
-// do nothing
+// do nothing (needed for timing)
 #define nop(...) (__VA_ARGS__)
 
 // swap the top two elements
@@ -47,7 +50,7 @@
   tuples).
 */
 
-// a constant value one
+// the constant 0
 #define zero ()
 
 // add 1 to the top element
@@ -58,6 +61,31 @@
 
 // add the top two elements
 #define plus(n, m, ...) (($ n, $ pop m), __VA_ARGS__)
+
+/*
+  Boolean values are just encoded as the strings 'true' and 'false'.
+*/
+
+// yields an error on anything but the empty tuple, leaving false
+// thus only expands to true for empty tuple
+#define false() true
+
+// is the top item an empty tuple?
+#define isempty(x, ...) (false x, __VA_ARGS__)
+
+// Church encoding of boolean values
+#define iftrue(x, y, ...) (x, __VA_ARGS__)
+#define iffalse(x, y, ...) (y, __VA_ARGS__)
+
+// conditional evaluation
+#define if(cond, a, b, ...) if ## cond (a, b, __VA_ARGS__)
+
+// logical connectives
+#define and(p, q, ...) if (p, top if (q, true, false), false, __VA_ARGS__)
+#define or(p, q, ...) if (p, true, top if (q, true, false), __VA_ARGS__)
+#define not(p, ...) if (p, false, true, __VA_ARGS__)
+
+#define f(p, ...) if nop nop nop (top isempty (p), zero, plus nop nop nop nop p f top pred p, __VA_ARGS__)
 
 // force above definitions to persist in future passes
 #define wrap(x) x
