@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# --------------------------------------------------------------------------------
+
+# print a line across the console of a character $1
+function lineof() {
+  printf "%.s$1" $(seq 1 $(tput cols))
+}
+
+# print text $1 in bold
+function becho() {
+  BOLD=$(tput bold)
+  REGULAR=$(tput sgr0)
+  echo "$BOLD$1$REGULAR"
+}
+
+# --------------------------------------------------------------------------------
+
+src=$1
+verbosity=0
+
+# parse flags
+for arg in "$@"; do
+  case $arg in
+    -v=*|--verbosity=*)
+      verbosity="${arg#*=}"
+    ;;
+  esac
+done
+
+# strip blank lines from source
+s="$(cat "$src" | grep ".")"
+
+# apply preprocessor until the text doesn't change
+i=0
+while : ; do
+  if [ "$verbosity" -gt "0" ]; then
+    lineof "─"
+    if [ "$verbosity" -gt "1" ]; then
+      becho "Pass $i"
+      lineof "─"
+      let i++
+    fi
+    echo "$s"
+  fi
+
+  # run one pass of the preprocessor
+  # grep is used exclude remarks (e.g. # 1 "<stdin>") and empty lines added by cpp
+  new="$(echo "$s" | cpp | grep "." | grep -v "^# ")"
+
+  if [ "$new" == "$s" ]; then break; fi
+  s="$new"
+done
+
+# print output
+if [ "$verbosity" -gt "0" ]; then
+  lineof "─"
+  if [ "$verbosity" -gt "1" ]; then
+    becho "Output (after $i passes)"
+    lineof "─"
+  fi
+fi
+echo "$s"
+
