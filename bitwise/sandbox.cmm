@@ -1,0 +1,9 @@
+#define DEFINE #define
+#define MEM_0 5
+#define CAT(a, b) a ## b
+
+#define test(x, ...) DEFINE x ## __VA_ARGS__ x
+
+test(MEM,_0)
+#define testa(x) #x
+testa(MEM_0)
