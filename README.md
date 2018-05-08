@@ -19,6 +19,8 @@ as tuples to represent data and parametrized macros to represent functions.
 [prelude.h](https://github.com/johnli0135/c--/blob/master/tuple/prelude.h) defines some useful constructs
 like stacks, natural numbers, arithmetic, predicates, and conditional execution.
 
+[examples.cmm](https://github.com/johnli0135/c--/blob/master/tuple/examples.cmm) contains some sample code.
+
 ## Computing with low level constructs
 
 The [lowlevel approach](https://github.com/johnli0135/c--/blob/master/lowlevel/) uses lots of variables
@@ -30,7 +32,7 @@ and executing instructions from memory.
 
 Programs can be written by directly modifying the initial memory layout. This can be done by including a modified
 copy of [init_template.h](https://github.com/johnli0135/c--/blob/master/lowlevel/make.py) with the proper instructions
-filled in. For example, the following initialization designed for a VM with word size 4 and memory size 3,
+filled in. For example, the following initialization, designed for a VM with word size 4 and memory size 3,
 will store the string `1111` in memory address `1` (i.e., `MEM_4` .. `MEM_7`):
 
 ```C
@@ -64,4 +66,13 @@ will store the string `1111` in memory address `1` (i.e., `MEM_4` .. `MEM_7`):
 #define MEM_9 0
 #define MEM_10 0
 #define MEM_11 0
+```
+
+The program can be "run" by including this and other header files in the right order and passing
+the resulting file to `c--`:
+
+```C
+#include "consts.h"
+#include "init_store1111.h"
+#include "vm.h"
 ```
