@@ -63,6 +63,13 @@ output.write("""/*
   In order for data to persist across preprocessor passes, each
   variable has a lowercase analogue. The state will alternate
   between uppercase and lowercase variables with each pass.
+
+  Instructions are processed only when variables are in uppercase.
+  This allows for time between instructions for changing values
+  and referencing parts of memory. It also makes the code for handling
+  each instruction consistent--uppercase always represents a value
+  at the current time step, and lowercase always represents a value
+  at the next time step.
 */
 """)
 
@@ -119,8 +126,10 @@ def inc_ptrs(upcase):
     for i in range(n):
         directive = "#if" if i == 0 else "#elif"
         output.write("%s IP == %d\n" % (directive, i))
-        output.write("DEFINE ip %d\n" % ((i + 1) % n))
-        output.write("DEFINE ap %d\n" % ((i + 2) % n))
+
+        # add 2 to pointers to skip over the argument of past instr
+        output.write("DEFINE ip %d\n" % ((i + 2) % n))
+        output.write("DEFINE ap %d\n" % ((i + 3) % n))
     output.write("#endif\n")
 
 generate(inc_ptrs)
