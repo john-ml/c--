@@ -77,4 +77,4 @@ in the right order and passing the resulting file to `c--`:
 #include "vm.h"
 ```
 
-The generated files (in particular, [vm.h](https://github.com/johnli0135/c--/blob/master/lowlevel/init_template.h)) include comments describing the implementation in more detail.
+The generated files (in particular, [vm.h](https://github.com/johnli0135/c--/blob/master/lowlevel/vm.h)) include comments describing the implementation in more detail.
