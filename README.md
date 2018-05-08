@@ -30,6 +30,8 @@ to maintain a virtual machine that includes an instruction pointer, a temporary 
 and memory size, preprocessor code responsible for maintaining the state of the virtual machine and loading
 and executing instructions from memory.
 
+The generated files (in particular, [vm.h](https://github.com/johnli0135/c--/blob/master/lowlevel/vm.h)) include comments describing the implementation in more detail.
+
 Programs can be written by directly modifying the initial memory layout. This can be done by including a modified
 copy of [init_template.h](https://github.com/johnli0135/c--/blob/master/lowlevel/init_template.h) with the proper instructions
 filled in. For example, the following initialization, designed for a VM with word size 4 and memory size 3,
@@ -77,4 +79,3 @@ in the right order and passing the resulting file to `c--`:
 #include "vm.h"
 ```
 
-The generated files (in particular, [vm.h](https://github.com/johnli0135/c--/blob/master/lowlevel/vm.h)) include comments describing the implementation in more detail.
