@@ -1,0 +1,9 @@
+#include "prelude.h"
+
+cyc cyc cyc (1, 2, 3, 4, 5)
+
+// nop necessary to make preprocessor wait for the _'s to finish
+swp nop nop (a _ (b _ (c, d)))
+
+// (2 + 2 = 4) - 1 = 3 (not-so-quick maths)
+top pred plus succ succ swp succ succ dup (zero)
