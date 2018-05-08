@@ -32,5 +32,6 @@ not (false, )
 not (true, )
 
 top (pred succ succ (zero))
+top (pred succ (zero))
 // f succ (zero)
 
