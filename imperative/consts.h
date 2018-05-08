@@ -1,6 +1,7 @@
 /*
-  The virtual machine has three components:
+  The virtual machine has four components:
     Instruction pointer: variable IP
+    Argument pointer: variable AP (= IP + 1)
     Temp register: variables TMP_ ## 0 .. TMP_ ## (WORD_SIZE - 1)
     Main memory: variables MEM_ ## 0 .. MEM_ ## (MEM_SIZE * WORD_SIZE - 1)
 

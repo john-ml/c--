@@ -1,9 +1,12 @@
-#define DEFINE #define
-#define MEM_0 5
-#define CAT(a, b) a ## b
-
-#define test(x, ...) DEFINE x ## __VA_ARGS__ x
-
-test(MEM,_0)
-#define testa(x) #x
-testa(MEM_0)
+#define a3 1
+#define b 3
+#define paste(x, y) x ## y
+#define IF #if
+#define ELSE #else
+#define ENDIF #endif
+#define try(a, b) IF paste(a, b) == 1
+try(a, b)
+  true
+ELSE
+  false
+ENDIF

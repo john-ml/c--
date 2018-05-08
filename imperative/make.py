@@ -1,13 +1,14 @@
 # This script generates consts.h, init_template.h, vm.h 
 
-MEM_SIZE = 1
+MEM_SIZE = 3
 WORD_SIZE = 4
 
 # make consts.h
 output = open("consts.h", "w")
 output.write("""/*
-  The virtual machine has three components:
+  The virtual machine has four components:
     Instruction pointer: variable IP
+    Argument pointer: variable AP (= IP + 1)
     Temp register: variables TMP_ ## 0 .. TMP_ ## (WORD_SIZE - 1)
     Main memory: variables MEM_ ## 0 .. MEM_ ## (MEM_SIZE * WORD_SIZE - 1)
 
@@ -40,6 +41,7 @@ output.write("""/*
 
 // programs start at address 0
 #define IP 0
+#define AP 1
 
 // initialize temp register
 """)
@@ -75,32 +77,16 @@ def generate(f):
     output.write("#endif\n")
 
 output.write("""
-/*
-  To allow data to persist across passes, we need to emit
-  #define directives but not evaluate them.
-*/
-
-// Defer evaluation of a #define statement
+// To allow data to persist across passes, we need to emit
+// directives but not evaluate them.
 #define DEFINE #define
+#define IF #if
+#define ELSE #else
+#define ELIF #elif
+#define ENDIF #endif
 """)
 
-output.write("\n// increment IP\n")
-
-# emit code to increment ip
-def inc_ip(upcase):
-    ip = "IP" if upcase else "ip"
-    next_ip = "ip" if upcase else "IP"
-    elses = 0
-    n = MEM_SIZE * WORD_SIZE
-    for i in range(n):
-        directive = "#if" if i == 0 else "#elif"
-        output.write("%s %s == %d\n" % (directive, ip, i))
-        output.write("DEFINE %s %s\n" % (next_ip, (i + 1) % n))
-    output.write("#endif\n")
-
-generate(inc_ip)
-
-# emit code to emit code to allow identifier to persist across passes
+# emit code to allow identifier to persist across passes
 def persist(identifier, upcase):
     lo = identifier.lower()
     up = identifier.upper()
@@ -112,6 +98,9 @@ def persist(identifier, upcase):
 # emit code to allow entire state to persist, assuming the current pass
 # uses uppercase variables if upcase = true
 def persist_all(upcase):
+    if not upcase:
+        persist("IP", upcase)
+        persist("AP", upcase)
     for i in range(WORD_SIZE):
         persist("TMP_%d" % i, upcase)
     for i in range(MEM_SIZE * WORD_SIZE):
@@ -119,6 +108,64 @@ def persist_all(upcase):
 
 output.write("\n// Allow state to persist across passes\n")
 generate(persist_all)
+
+# emit code to increment ip
+output.write("\n// increment IP and AP\n")
+def inc_ptrs(upcase):
+    if not upcase:
+        return
+    elses = 0
+    n = MEM_SIZE * WORD_SIZE
+    for i in range(n):
+        directive = "#if" if i == 0 else "#elif"
+        output.write("%s IP == %d\n" % (directive, i))
+        output.write("DEFINE ip %d\n" % ((i + 1) % n))
+        output.write("DEFINE ap %d\n" % ((i + 2) % n))
+    output.write("#endif\n")
+
+generate(inc_ptrs)
+
+output.write("""
+// Needed to reference data in memory
+#define CAT(a, b) a ## b
+#define QUERY(i) IF CAT(MEM_, i) == 
+#define EQUERY(i) ELIF CAT(MEM_, i) ==
+#define SET(i, j) DEFINE CAT(tmp_, i) CAT(MEM_, j)
+""")
+
+# given a dictionary { instruction_name: handler(upcase) }, emit
+# code that executes instructions based on the value of MEM[IP]
+# for the corresponding value of upcase
+def step(handlers, upcase):
+    if not upcase:
+        return
+    directive = "QUERY"
+    for instruction in handlers:
+        handler = handlers[instruction]
+        output.write("%s(IP) %s\n" % (directive, instruction))
+        handler()
+        directive = "EQUERY"
+    output.write("ENDIF\n")
+
+# handle the LOAD instruction
+def handle_load():
+    directive = "QUERY"
+    for i in range(MEM_SIZE):
+        output.write("%s(AP) %d\n" % (directive, i))
+        for j in range(WORD_SIZE):
+            output.write("SET(%d, %d)\n" % (j, i * WORD_SIZE + j))
+        directive = "EQUERY"
+    output.write("ENDIF\n")    
+
+# wrap all generating code into a nice function for generate()
+def curried_step(upcase):
+    handlers = {
+        "LOAD": handle_load
+    }
+    return step(handlers, upcase)
+
+output.write("\n// Process the instruction at MEM[IP]\n")
+generate(curried_step)
 
 output.write("""
 /*
