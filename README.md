@@ -12,16 +12,16 @@ Verbosity levels:
 
 ## Computing with tuples
 
-The [tuple](https://github.com/johnli0135/c--/blob/master/tuple/) approach uses parameter lists
+The [tuple approach](https://github.com/johnli0135/c--/blob/master/tuple/) uses parameter lists
 as tuples to represent data and parametrized macros to represent functions.
-(`f(g(x))` is written `f g x`.)
+(e.g. `f(g(x))` is written `f g x`.)
 
 [prelude.h](https://github.com/johnli0135/c--/blob/master/tuple/prelude.h) defines some useful constructs
 like stacks, natural numbers, arithmetic, predicates, and conditional execution.
 
 ## Computing with low level constructs
 
-The [lowlevel](https://github.com/johnli0135/c--/blob/master/lowlevel/) approach uses lots of variables
+The [lowlevel approach](https://github.com/johnli0135/c--/blob/master/lowlevel/) uses lots of variables
 to maintain a virtual machine that includes an instruction pointer, a temporary register, and RAM.
 
 [make.py](https://github.com/johnli0135/c--/blob/master/lowlevel/make.py) generates, given a fixed word size
