@@ -36,17 +36,24 @@ i=0
 while : ; do
   if [ "$verbosity" -gt "0" ]; then
     lineof "─"
+    becho "Pass $i"
+    lineof "─"
+    let i++
     if [ "$verbosity" -gt "1" ]; then
-      becho "Pass $i"
-      lineof "─"
-      let i++
+      echo "$s"
     fi
-    echo "$s"
   fi
+
+  #pp="cpp -D __FILE__=\"$1\""
+  pp="cpp"
 
   # run one pass of the preprocessor
   # grep is used exclude remarks (e.g. # 1 "<stdin>") and empty lines added by cpp
-  new="$(echo "$s" | cpp | grep "." | grep -v "^# ")"
+  if [ "$verbosity" -gt "0" ]; then
+    new="$(echo "$s" | $pp | grep "." | grep -v "^# ")"
+  else
+    new="$(echo "$s" | $pp 2> /dev/null | grep "." | grep -v "^# ")"
+  fi
 
   if [ "$new" == "$s" ]; then break; fi
   s="$new"
@@ -55,10 +62,8 @@ done
 # print output
 if [ "$verbosity" -gt "0" ]; then
   lineof "─"
-  if [ "$verbosity" -gt "1" ]; then
-    becho "Output (after $i passes)"
-    lineof "─"
-  fi
+  becho "Output (after $i passes)"
+  lineof "─"
 fi
 echo "$s"
 

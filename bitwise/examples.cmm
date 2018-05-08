@@ -1,7 +1,4 @@
-#include "util.h"
+#include "consts.h"
+#include "init_template.h"
+#include "vm.h"
 
-DEFINE() TEST() () 1
-DEFINE() ARG2() () TEST
-DEFINE() ARG1() () DESTINATION
-INCLUDE() "movb.h"
-DESTINATION()

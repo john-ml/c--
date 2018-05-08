@@ -1,115 +1,130 @@
-STACK_SIZE = 10
+# This script generates consts.h, init_template.h, vm.h 
 
-# make util.h
-output = open("util.h", "w")
+MEM_SIZE = 1
+WORD_SIZE = 4
+
+# make consts.h
+output = open("consts.h", "w")
 output.write("""/*
-  Abbreviations of commonly used patterns.
+  The virtual machine has three components:
+    Instruction pointer: variable IP
+    Temp register: variables TMP_ ## 0 .. TMP_ ## (WORD_SIZE - 1)
+    Main memory: variables MEM_ ## 0 .. MEM_ ## (MEM_SIZE * WORD_SIZE - 1)
+
+  Instructions and their arguments are encoded as positive integers.
+
+  Layout in memory:
+    LO [instruction1 arg1 instruction2 arg2 .. instructionN argN] HI
 */
 
-// standard directives 
-#define __IF__ #if
-#define __IFDEF__ #ifdef
-#define __IFNDEF__ #ifndef
-#define __ELIF__ #elif
-#define __ELSE__ #else
-#define __END__ #endif
-#define __DEFINE__ #define
-#define __UNDEF__ #undef
-#define __ERROR__ #error
-#define __INCLUDE__ #include
-#define IF() __IF__ 1 == 
-#define IFNOT() __IF__ 1 != 
-#define IFDEF() __IFDEF__
-#define IFNDEF() __IFNDEF__
-#define ELIF() __ELIF__
-#define ELSE() __ELSE__
-#define END() __END__
-#define DEFINE() __DEFINE__
-#define UNDEF() __UNDEF__
-#define ERROR() __ERROR__
-#define INCLUDE() __INCLUDE__
+// store MEM[arg] .. MEM[arg + WORD_SIZE - 1] in TMP
+#define LOAD 0
 
-// setting values
-#define ON(x) DEFINE x() 1
-#define OFF(x) DEFINE x() 0
+// store TMP in MEM[arg] .. MEM[arg + WORD_SIZE - 1]
+#define STORE 1
 
-// get ith bit of x
-#define BIT(i, x) x ## _ ## i
-
+// force above definitions to persist across preprocessor passes
 #define PERSIST #include __FILE__
 PERSIST
-
 """)
 output.close()
 
-# make movb.h
-output = open("movb.h", "w")
-
+# make init_template.h
+output = open("init_template.h", "w")
 output.write("""/*
-  Inputs: ARG1 ARG2
-  Copies a single bit from ARG2 to ARG1.
+  This file defines the initial state of the VM.
+
+  Programs are written by setting values in "main memory" to
+  instruction codes and their arguments.
 */
-#include "util.h"
+
+// programs start at address 0
+#define IP 0
+
+// initialize temp register
 """)
+for i in range(WORD_SIZE):
+    output.write("#define TMP_%d 0\n" % i)
+output.write("\n// initialize main memory\n")
+for i in range(MEM_SIZE * WORD_SIZE):
+    output.write("#define MEM_%d 0\n" % i)
+output.close()
+
+# make vm.h
+output = open("vm.h", "w")
+output.write("""/*
+  This file defines preprocessor logic that reads the current
+  instruction from MEM[IP], evaluates it, increments IP, and
+  sends the new VM state (as well as this code) onto the next
+  preprocessor pass.
+
+  In order for data to persist across preprocessor passes, each
+  variable has a lowercase analogue. The state will alternate
+  between uppercase and lowercase variables with each pass.
+*/
+""")
+
+# if f(upcase) is a function that emits code involving uppercase
+# identifiers if upcase = True and lowercase if upcase = False,
+# emit code that automatically handles both cases
+def generate(f):
+    output.write("#ifdef IP\n")
+    f(True)
+    output.write("#else\n")
+    f(False)
+    output.write("#endif\n")
 
 output.write("""
-IF ARG2()
-  DEFINE ARG1()() 1
-ELSE ARG2()
-  DEFINE ARG1()() 0
-END ARG2()
-""")
-
-output.close()
-
-# make push.h
-output = open("pushb.h", "w")
-
-output.write("""/*
-  Inputs: ITEM
-  Pushes the bit ITEM onto the stack.
+/*
+  To allow data to persist across passes, we need to emit
+  #define directives but not evaluate them.
 */
-#include "util.h"
+
+// Defer evaluation of a #define statement
+#define DEFINE #define
 """)
 
-elses = 0
-for i in reversed(range(STACK_SIZE)):
-    output.write("IFNDEF STACK_%d\n" % i)
-    output.write("  DEFINE ARG1() STACK_%d\n" % i)
-    output.write("  DEFINE ARG2() ITEM\n")
-    output.write("  INCLUDE \"movb.h\"\n")
-    output.write("ELSE\n")
-    elses += 1
-    if i == 0:
-        output.write("  ERROR Stack overflow\n")
-for i in range(elses):
-    output.write("END\n")
+output.write("\n// increment IP\n")
 
-output.close()
+# emit code to increment ip
+def inc_ip(upcase):
+    ip = "IP" if upcase else "ip"
+    next_ip = "ip" if upcase else "IP"
+    elses = 0
+    n = MEM_SIZE * WORD_SIZE
+    for i in range(n):
+        directive = "#if" if i == 0 else "#elif"
+        output.write("%s %s == %d\n" % (directive, ip, i))
+        output.write("DEFINE %s %s\n" % (next_ip, (i + 1) % n))
+    output.write("#endif\n")
 
-# make pop.h
-output = open("popb.h", "w")
+generate(inc_ip)
 
-output.write("""/*
-  Inputs: None
-  Pops the bit from the top of the stack into ITEM.
+# emit code to emit code to allow identifier to persist across passes
+def persist(identifier, upcase):
+    lo = identifier.lower()
+    up = identifier.upper()
+    if upcase:
+        output.write("DEFINE %s %s\n" % (lo, up))
+    else:
+        output.write("DEFINE %s %s\n" % (up, lo))
+
+# emit code to allow entire state to persist, assuming the current pass
+# uses uppercase variables if upcase = true
+def persist_all(upcase):
+    for i in range(WORD_SIZE):
+        persist("TMP_%d" % i, upcase)
+    for i in range(MEM_SIZE * WORD_SIZE):
+        persist("MEM_%d" % i, upcase)
+
+output.write("\n// Allow state to persist across passes\n")
+generate(persist_all)
+
+output.write("""
+/*
+  Finally, all of the above declarations need to persist across passes.
 */
-#include "util.h"
+#define PERSIST #include __FILE__
+PERSIST
 """)
-
-elses = 0
-for i in range(STACK_SIZE):
-    output.write("IFDEF STACK_%d\n" % i)
-    output.write("  DEFINE ARG1() ITEM\n")
-    output.write("  DEFINE ARG2() STACK_%d\n" % i)
-    output.write("  INCLUDE \"movb.h\"\n")
-    output.write("  UNDEF STACK_%d\n" % i)
-    output.write("ELSE\n")
-    elses += 1
-    if i == STACK_SIZE - 1:
-        output.write("  ERROR Stack underflow\n")
-for i in range(elses):
-    output.write("END\n")
-
 output.close()
-
