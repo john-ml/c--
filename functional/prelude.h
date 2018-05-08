@@ -111,3 +111,12 @@
   file that is only evaluated on the next pass (avoiding circularity).
 */
 #define persist #include __FILE__
+
+// if a header file with custom definitions isn't needed, can define
+// PERSIST_PRELUDE and prelude.h will persist across passes
+#ifdef PERSIST_PRELUDE
+  #undef PERSIST_PRELUDE
+  #define define_persist_prelude #define PERSIST_PRELUDE
+  define_persist_prelude
+  persist
+#endif
