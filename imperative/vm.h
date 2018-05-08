@@ -102,26 +102,44 @@ DEFINE ap 1
 #define CAT(a, b) a ## b
 #define QUERY(i) IF CAT(MEM_, i) == 
 #define EQUERY(i) ELIF CAT(MEM_, i) ==
-#define SET(i, j) DEFINE CAT(tmp_, i) CAT(MEM_, j)
+#define GET(i, j) DEFINE CAT(tmp_, i) CAT(MEM_, j)
+#define SET(i, j) DEFINE CAT(mem_, i) CAT(TMP_, j)
 
 // Process the instruction at MEM[IP]
 #ifdef IP
 QUERY(IP) LOAD
+QUERY(AP) 0
+GET(0, 0)
+GET(1, 1)
+GET(2, 2)
+GET(3, 3)
+EQUERY(AP) 1
+GET(0, 4)
+GET(1, 5)
+GET(2, 6)
+GET(3, 7)
+EQUERY(AP) 2
+GET(0, 8)
+GET(1, 9)
+GET(2, 10)
+GET(3, 11)
+ENDIF
+EQUERY(IP) STORE
 QUERY(AP) 0
 SET(0, 0)
 SET(1, 1)
 SET(2, 2)
 SET(3, 3)
 EQUERY(AP) 1
-SET(0, 4)
-SET(1, 5)
-SET(2, 6)
-SET(3, 7)
+SET(4, 0)
+SET(5, 1)
+SET(6, 2)
+SET(7, 3)
 EQUERY(AP) 2
-SET(0, 8)
-SET(1, 9)
-SET(2, 10)
-SET(3, 11)
+SET(8, 0)
+SET(9, 1)
+SET(10, 2)
+SET(11, 3)
 ENDIF
 ENDIF
 #else

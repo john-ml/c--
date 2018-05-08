@@ -10,21 +10,21 @@
 #define AP 1
 
 // initialize temp register
-#define TMP_0 0
-#define TMP_1 0
-#define TMP_2 0
-#define TMP_3 0
+#define TMP_0 4
+#define TMP_1 5
+#define TMP_2 6
+#define TMP_3 7
 
 // initialize main memory
-#define MEM_0 0
+#define MEM_0 1
 #define MEM_1 1
-#define MEM_2 2
-#define MEM_3 3
-#define MEM_4 4
-#define MEM_5 5
-#define MEM_6 6
-#define MEM_7 7
-#define MEM_8 8
-#define MEM_9 9
-#define MEM_10 10
-#define MEM_11 11
+#define MEM_2 0
+#define MEM_3 0
+#define MEM_4 0
+#define MEM_5 0
+#define MEM_6 0
+#define MEM_7 0
+#define MEM_8 0
+#define MEM_9 0
+#define MEM_10 0
+#define MEM_11 0

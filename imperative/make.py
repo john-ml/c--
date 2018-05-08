@@ -130,7 +130,8 @@ output.write("""
 #define CAT(a, b) a ## b
 #define QUERY(i) IF CAT(MEM_, i) == 
 #define EQUERY(i) ELIF CAT(MEM_, i) ==
-#define SET(i, j) DEFINE CAT(tmp_, i) CAT(MEM_, j)
+#define GET(i, j) DEFINE CAT(tmp_, i) CAT(MEM_, j)
+#define SET(i, j) DEFINE CAT(mem_, i) CAT(TMP_, j)
 """)
 
 # given a dictionary { instruction_name: handler(upcase) }, emit
@@ -153,14 +154,25 @@ def handle_load():
     for i in range(MEM_SIZE):
         output.write("%s(AP) %d\n" % (directive, i))
         for j in range(WORD_SIZE):
-            output.write("SET(%d, %d)\n" % (j, i * WORD_SIZE + j))
+            output.write("GET(%d, %d)\n" % (j, i * WORD_SIZE + j))
+        directive = "EQUERY"
+    output.write("ENDIF\n")    
+
+# handle the STORE instruction
+def handle_store():
+    directive = "QUERY"
+    for i in range(MEM_SIZE):
+        output.write("%s(AP) %d\n" % (directive, i))
+        for j in range(WORD_SIZE):
+            output.write("SET(%d, %d)\n" % (i * WORD_SIZE + j, j))
         directive = "EQUERY"
     output.write("ENDIF\n")    
 
 # wrap all generating code into a nice function for generate()
 def curried_step(upcase):
     handlers = {
-        "LOAD": handle_load
+        "LOAD": handle_load,
+        "STORE": handle_store,
     }
     return step(handlers, upcase)
 
