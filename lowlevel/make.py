@@ -133,7 +133,6 @@ output.write("\n// increment IP and AP\n")
 def inc_ptrs(upcase):
     if not upcase:
         return
-    elses = 0
     n = MEM_SIZE * WORD_SIZE
     for i in range(n):
         directive = "#if" if i == 0 else "#elif"
