@@ -163,9 +163,9 @@
   top f (top head (l), top foldr (f, e, top tail (l))), __VA_ARGS__)
 
 // use f to apply left fold on l with initial element e
-// useful when foldr may run out of memory, but slower
-// since foldr does multiple computations per pass while
-// foldl must do ~1 application of f per pass
+// (useful when foldr may run out of memory, but slower
+// since foldr does multiple expansions per pass while
+// foldl must do ~1 application of f per pass)
 #define foldl(f, e, l, ...) if nop4 (top isempty tail (l), \
   top f (e, top head (l)), \
   top foldl (f, top f (e, top head (l)), top tail (l)), __VA_ARGS__)

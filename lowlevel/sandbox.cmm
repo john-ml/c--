@@ -16,3 +16,17 @@ ENDIF
 #else
   false
 #endif
+
+#define x 3
+#if x == 3
+  true
+#else
+  false
+#endif
+
+#define x 4
+#if x == 4
+  true
+#else
+  false
+#endif

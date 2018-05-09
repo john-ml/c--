@@ -1,32 +1,62 @@
 # This script generates consts.h, init_template.h, vm.h 
 
-MEM_SIZE = 3
+MEM_SIZE = 5
 WORD_SIZE = 4
+
+# convert an integer i into a zero-padded binary representation
+def binarize(i):
+    return "{0:b}".format(i).zfill(WORD_SIZE)
+
+# write output of size n given by f(i, b) where i is an integer
+# and b is its binarized representation
+def write_block(n, f):
+    for i in range(n):
+        b = binarize(i)
+        f(i, b)
+
+# write a block over words
+def write_word_block(f):
+    write_block(WORD_SIZE, f)
+
+# write a block over memory
+def write_mem_block(f):
+    write_block(WORD_SIZE * MEM_SIZE, f)
+
 
 # make consts.h
 output = open("consts.h", "w")
 output.write("""/*
   Instructions and their arguments are encoded as positive integers.
 */
+""")
 
-// store MEM[arg] .. MEM[arg + WORD_SIZE - 1] in TMP
-#define LOAD 0
+# define an instruction given a name and opcode
+def instruction(name, opcode):
+    binarized = binarize(opcode)
+    output.write("#define %s %s\n" % (name, binarized))
+    write_word_block(lambda i, b:
+        output.write("#define %s_%d %s\n" % (name, i, binarized[i]))
+    )
 
-// store TMP in MEM[arg] .. MEM[arg + WORD_SIZE - 1]
-#define STORE 1
+output.write("\n// store MEM[arg] .. MEM[arg + WORD_SIZE - 1] in TMP\n")
+instruction("LOAD", 0)
 
-// TMP[0 .. WORD_SIZE-1] &= MEM[arg + (0 .. WORD_SIZE-1)]
-#define AND 2
+output.write("\n// store TMP in MEM[arg] .. MEM[arg + WORD_SIZE - 1]\n")
+instruction("STORE", 1)
 
-// TMP[0 .. WORD_SIZE-1] |= MEM[arg + (0 .. WORD_SIZE-1)]
-#define OR 3
+output.write("\n// TMP[0 .. WORD_SIZE-1] &= MEM[arg + (0 .. WORD_SIZE-1)]\n")
+instruction("AND", 2)
 
-// invert all bits in TMP[0 .. WORD_SIZE-1]
-#define NOT 4
+output.write("\n// TMP[0 .. WORD_SIZE-1] |= MEM[arg + (0 .. WORD_SIZE-1)]\n")
+instruction("OR", 3)
 
-// set IP = arg
-#define JMP 5
+output.write("\n// invert all bits in TMP[0 .. WORD_SIZE-1]\n")
+instruction("NOT", 4)
 
+output.write("\n// set IP = arg\n")
+instruction("JMP", 5)
+
+output.write("""
 // force above definitions to persist across preprocessor passes
 #define PERSIST #include __FILE__
 PERSIST
@@ -41,26 +71,25 @@ output.write("""/*
   Programs are written by setting values in "main memory" to
   instruction codes and their arguments.
 */
-
-// programs start at address 0
-#define IP 0
-#define AP 1
-
-// initialize temp register
 """)
-for i in range(WORD_SIZE):
-    output.write("#define TMP_%d 0\n" % i)
+
+output.write("\n// programs start at address 0\n")
+write_word_block(lambda i, b: output.write("#define IP_%s %s\n" % (b, b)))
+write_word_block(lambda i, b: output.write("#define AP_%s %s\n" % (b, binarize(WORD_SIZE + i))))
+
+output.write("\n// initialize temp register\n")
+write_word_block(lambda i, b: output.write("#define TMP_%s 0\n" % b))
+
 output.write("\n// initialize main memory\n")
-for i in range(MEM_SIZE * WORD_SIZE):
-    output.write("#define MEM_%d 0\n" % i)
+write_mem_block(lambda i, b: output.write("#define MEM_%s 0\n" % b))
 output.close()
 
 # make vm.h
 output = open("vm.h", "w")
 output.write("""/*
   The virtual machine has four components:
-    Instruction pointer: variable IP
-    Argument pointer: variable AP (= IP + 1)
+    Instruction pointer: variables IP_ ## 0 .. IP_ ## (WORD_SIZE - 1)
+    Argument pointer: variables AP_ ## 0 .. AP_ ## (WORD_SIZE - 1)
     Temp register: variables TMP_ ## 0 .. TMP_ ## (WORD_SIZE - 1)
     Main memory: variables MEM_ ## 0 .. MEM_ ## (MEM_SIZE * WORD_SIZE - 1)
 
@@ -89,7 +118,7 @@ output.write("""/*
 # identifiers if upcase = True and lowercase if upcase = False,
 # emit code that automatically handles both cases
 def generate(f):
-    output.write("#ifdef IP\n")
+    output.write("#ifdef IP_%s\n" % ('0' * WORD_SIZE))
     f(True)
     output.write("#else\n")
     f(False)
@@ -118,29 +147,42 @@ def persist(identifier, upcase):
 # uses uppercase variables if upcase = true
 def persist_all(upcase):
     if not upcase:
-        persist("IP", upcase)
-        persist("AP", upcase)
-    for i in range(WORD_SIZE):
-        persist("TMP_%d" % i, upcase)
-    for i in range(MEM_SIZE * WORD_SIZE):
-        persist("MEM_%d" % i, upcase)
+        write_word_block(lambda i, b: persist("IP_%s" % b, upcase))
+        write_word_block(lambda i, b: persist("AP_%s" % b, upcase))
+    write_word_block(lambda i, b: persist("TMP_%s" % b, upcase))
+    write_mem_block(lambda i, b: persist("MEM_%s" % b, upcase))
 
 output.write("\n// Allow state to persist across passes\n")
 generate(persist_all)
+
+# emit code to set ip and ap
+def set_ptrs(next_ip):
+    n = MEM_SIZE * WORD_SIZE
+    next_ap = next_ip + WORD_SIZE
+    write_word_block(lambda i, b: output.write("DEFINE ip_%s %s\n" % (
+        b,
+        binarize((next_ip + i) % n)
+    )))
+    write_word_block(lambda i, b: output.write("DEFINE ap_%s %s\n" % (
+        b,
+        binarize((next_ap + i) % n)
+    )))
 
 # emit code to increment ip
 output.write("\n// increment IP and AP\n")
 def inc_ptrs(upcase):
     if not upcase:
         return
-    n = MEM_SIZE * WORD_SIZE
-    for i in range(n):
+    for i in range(MEM_SIZE):
         directive = "#if" if i == 0 else "#elif"
-        output.write("%s IP == %d\n" % (directive, i))
+        output.write("%s IP_%s == %s\n" % (
+            directive,
+            '0' * WORD_SIZE,
+            binarize(i * WORD_SIZE))
+        )
 
         # add 2 to pointers to skip over the argument of past instr
-        output.write("DEFINE ip %d\n" % ((i + 2) % n))
-        output.write("DEFINE ap %d\n" % ((i + 3) % n))
+        set_ptrs(i * WORD_SIZE + 2 * WORD_SIZE)
     output.write("#endif\n")
 
 generate(inc_ptrs)
@@ -148,8 +190,11 @@ generate(inc_ptrs)
 output.write("""
 // Needed to reference data in memory
 #define CAT(a, b) a ## b
-#define EQUALS(i, j) IF CAT(MEM_, i) == j
-#define EEQUALS(i, j) ELIF CAT(MEM_, i) == j
+#define EMPTY()
+#define DEFER(x) x EMPTY()
+#define EVAL(...) __VA_ARGS__
+#define EQUALS(i, j) IF i == j
+#define EEQUALS(i, j) ELIF i == j
 #define GET(i, j) DEFINE CAT(tmp_, i) CAT(MEM_, j)
 #define SET(i, j) DEFINE CAT(mem_, i) CAT(TMP_, j)
 #define HIGH(i) DEFINE CAT(tmp_, i) 1
@@ -161,6 +206,27 @@ output.write("""
 #define SETPTR(p, i) DEFINE p CAT(MEM_, i)
 """)
 
+output.write("\n// Extract instruction and argument\n")
+
+# generate code to extract ptr_type into variable var
+def extract(ptr_type, var):
+    bits = ["EVAL(DEFER(CAT)(MEM_, %sP_%s))" % (ptr_type, binarize(i)) for i in range(WORD_SIZE)]
+    accu = ""
+    for i in range(len(bits)):
+        accu = "EVAL(DEFER(CAT)(%s, %s))" % (accu, bits[i])
+    output.write("#define %s %s\n" % (var, accu))
+
+# generate conditional statement that checks if var is equal to const,
+# assuming both values are binarized integers
+# uses conditional directive directive
+def condexpr(directive, var, const):
+    checkstr = "%s(EVAL(DEFER(CAT)(1, %s)), EVAL(DEFER(CAT)(1, %s)))\n"
+    output.write(checkstr % (directive, var, const))
+    return 
+
+extract("I", "INSTR")
+extract("A", "ARG")
+
 # given a dictionary { instruction_name: handler(upcase) }, emit
 # code that executes instructions based on the value of MEM[IP]
 # for the corresponding value of upcase
@@ -170,72 +236,81 @@ def step(handlers, upcase):
     directive = "EQUALS"
     for instruction in handlers:
         handler = handlers[instruction]
-        output.write("%s(IP, %s)\n" % (directive, instruction))
+        condexpr(directive, "INSTR", instruction)
         handler()
         directive = "EEQUALS"
     output.write("ENDIF\n")
 
 # generic handler for a binary operator
-# f(i, j) is a function that emits code to perform the relevant
+# f(i, j, k, b, c) is a function that emits code to perform the relevant
 # operation for memory location i and bit index j
+# k = i * WORD_SIZE + j
+# with binarized equivalents bi, bj, bk
 def handle_generic_op(f):
     directive = "EQUALS"
     for i in range(MEM_SIZE):
-        output.write("%s(AP, %d)\n" % (directive, i))
+        condexpr(directive, "ARG", binarize(i))
         for j in range(WORD_SIZE):
-            f(i, j)
+            f(
+                i,
+                j,
+                i * WORD_SIZE + j,
+                binarize(i),
+                binarize(j),
+                binarize(i * WORD_SIZE + j)
+            )
         directive = "EEQUALS"
     output.write("ENDIF\n")    
 
 # handle the LOAD instruction
 def handle_load():
-    def f(i, j):
-        output.write("GET(%d, %d)\n" % (j, i * WORD_SIZE + j))
+    def f(i, j, k, bi, bj, bk):
+        output.write("GET(%s, %s)\n" % (bj, bk))
     handle_generic_op(f)
 
 # handle the STORE instruction
 def handle_store():
-    def f(i, j):
-        output.write("SET(%d, %d)\n" % (i * WORD_SIZE + j, j))
+    def f(i, j, k, bi, bj, bk):
+        output.write("SET(%s, %s)\n" % (bk, bj))
     handle_generic_op(f)
 
 # handle the AND instruction
 def handle_and():
-    def f(i, j):
-        output.write("BOTHTRUE(%d, %d)\n" % (i * WORD_SIZE + j, j))
-        output.write("HIGH(%d)\n" % j)
+    def f(i, j, k, bi, bj, bk):
+        output.write("BOTHTRUE(%s, %s)\n" % (bk, bj))
+        output.write("HIGH(%s)\n" % bj)
         output.write("ELSE\n")
-        output.write("LOW(%d)\n" % j)
+        output.write("LOW(%s)\n" % bj)
         output.write("ENDIF\n")
     handle_generic_op(f)
 
 # handle the OR instruction
 def handle_or():
-    def f(i, j):
-        output.write("BOTHFALSE(%d, %d)\n" % (i * WORD_SIZE + j, j))
-        output.write("LOW(%d)\n" % j)
+    def f(i, j, k, bi, bj, bk):
+        output.write("BOTHFALSE(%s, %s)\n" % (bk, bj))
+        output.write("LOW(%s)\n" % bj)
         output.write("ELSE\n")
-        output.write("HIGH(%d)\n" % j)
+        output.write("HIGH(%s)\n" % bj)
         output.write("ENDIF\n")
     handle_generic_op(f)
 
 # handle the NOT instruction
 def handle_not():
-    for j in range(WORD_SIZE):
-        output.write("TMPTRUE(%d)\n" % j)
-        output.write("LOW(%d)\n" % j)
+    def write_one(i, b):
+        output.write("TMPTRUE(%s)\n" % b)
+        output.write("LOW(%s)\n" % b)
         output.write("ELSE\n")
-        output.write("HIGH(%d)\n" % j)
+        output.write("HIGH(%s)\n" % b)
         output.write("ENDIF\n")
+    write_word_block(write_one)
 
 # handle the JMP instruction
 def handle_jmp():
     directive = "EQUALS"
-    output.write("SETPTR(ip, AP)\n")
     n = MEM_SIZE * WORD_SIZE
     for i in range(n):
-        output.write("%s(AP, %d)\n" % (directive, i))
-        output.write("DEFINE ap %d\n" % ((i + 1) % n))
+        condexpr(directive, "ARG", binarize(i))
+        set_ptrs(i)
         directive = "EEQUALS"
     output.write("ENDIF\n")    
 
