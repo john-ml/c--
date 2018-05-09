@@ -53,8 +53,8 @@
 /*
   Tuples can be used to represent natural numbers:
   () = 0
-  (s,) = 1
-  (...,s,) = n + 1 where n = (...)
+  (s, ) = 1
+  (..., s, ) = n + 1 where n = (...)
 
   The numbers are defined recursively to the left so that the
   rightmost "empty tuple" in every number can be easily
@@ -121,7 +121,7 @@
 
 // compute the power n^m
 #define pow(n, m, ...) if nop (top iszero (m), \
-  (s,), \
+  (s, ), \
   top mult (n, top pow (n, top pred (m))), __VA_ARGS__)
 
 /*
@@ -140,8 +140,14 @@
 /*
   Since "functions" like head, tail, etc are only evaluated when
   immediately followed by a parenthesis, the tokens themselves
-  can sort of behave like higher order functions.
+  can sort of allow for higher order functions.
 */
+
+// apply f to (x, ...)
+#define apply(f, x, ...) f (x, __VA_ARGS__) 
+
+// compose f and g
+#define compose(f, g, ...) (f g, __VA_ARGS__)
 
 // apply f to each element in the list l
 #define map(f, l, ...) if nop (top isempty (l), \
@@ -150,6 +156,19 @@
     (top f l), \
     (top f l, $ top map (f, top tail (l))) \
   ), __VA_ARGS__)
+
+// use f to apply right fold on l with initial element e
+#define foldr(f, e, l, ...) if nop4 (top isempty tail (l), \
+  top f (top head (l), e), \
+  top f (top head (l), top foldr (f, e, top tail (l))), __VA_ARGS__)
+
+// use f to apply left fold on l with initial element e
+// useful when foldr may run out of memory, but slower
+// since foldr does multiple computations per pass while
+// foldl must do ~1 application of f per pass
+#define foldl(f, e, l, ...) if nop4 (top isempty tail (l), \
+  top f (e, top head (l)), \
+  top foldl (f, top f (e, top head (l)), top tail (l)), __VA_ARGS__)
 
 /*
   The definitions above need to persist across preprocessor passes.
