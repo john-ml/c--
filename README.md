@@ -36,7 +36,7 @@ gives
 (((s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, )), )
 ```
 
-[examples.cmm](https://github.com/johnli0135/c--/blob/master/tuple/examples.cmm) contains some sample code.
+[examples.cmm](https://github.com/johnli0135/c--/blob/master/tuple/examples.cmm) contains additional examples.
 
 ## Computing with low level constructs
 
