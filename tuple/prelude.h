@@ -107,9 +107,15 @@
   Use conditional expressions to build more complicated arithmetic operators.
 */
 
+// multiply the top two elements together
 #define mult(n, m, ...) if nop (top iszero (n), \
   zero, \
   top plus (m, top mult (top pred (n), m)), __VA_ARGS__)
+
+// subtract the second element from the first
+#define minus(n, m, ...) if nop (top iszero (m), \
+  n, \
+  top minus (top pred (n), top pred (m)), __VA_ARGS__)
 
 /*
   The definitions above need to persist across preprocessor passes.
