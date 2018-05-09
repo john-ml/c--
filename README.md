@@ -18,7 +18,8 @@ as tuples to represent data and variadic macros to represent operators that act 
 [prelude.h](https://github.com/johnli0135/c--/blob/master/tuple/prelude.h) defines some useful constructs
 like stacks/lists, natural numbers, arithmetic, predicates, and conditional execution.
 
-For example, the following evaluates to `(3)`:```
+For example, the following evaluates to `(3)`:
+```
 pop pop pop (0, 1, 2, 3)
 ```
 
