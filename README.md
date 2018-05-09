@@ -17,7 +17,7 @@ as tuples to represent data and parametrized macros to represent functions.
 (e.g. `f(g(x))` is written `f g x`.)
 
 [prelude.h](https://github.com/johnli0135/c--/blob/master/tuple/prelude.h) defines some useful constructs
-like stacks, natural numbers, arithmetic, predicates, and conditional execution.
+like stacks/lists, natural numbers, arithmetic, predicates, and conditional execution.
 
 [examples.cmm](https://github.com/johnli0135/c--/blob/master/tuple/examples.cmm) contains some sample code.
 
