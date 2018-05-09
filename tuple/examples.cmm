@@ -96,4 +96,3 @@ foldr nop4 (mult, (s, ), succ dup succ dup succ dup succ dup ((s, )))
 // foldl (*) 1 [1, 2, 3, 4, 5] = 120
 // Finishes in 133 passes, but never accumulates computations like foldr
 foldl nop4 (mult, (s, ), succ dup succ dup succ dup succ dup ((s, )))
-
