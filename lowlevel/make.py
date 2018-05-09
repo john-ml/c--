@@ -220,6 +220,7 @@ def handle_or():
         output.write("ENDIF\n")
     handle_generic_op(f)
 
+# handle the NOT instruction
 def handle_not():
     for j in range(WORD_SIZE):
         output.write("TMPTRUE(%d)\n" % j)
@@ -228,6 +229,7 @@ def handle_not():
         output.write("HIGH(%d)\n" % j)
         output.write("ENDIF\n")
 
+# handle the JMP instruction
 def handle_jmp():
     directive = "EQUALS"
     output.write("SETPTR(ip, AP)\n")

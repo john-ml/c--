@@ -1,6 +1,4 @@
 /*
-  Functional approach
-
   Inputs are tuples (a, b, ...) that get applied to
   functions from right to left.
 
@@ -55,11 +53,12 @@
 /*
   Tuples can be used to represent natural numbers:
   () = 0
-  (..., x) = n + 1 where n = (...)
+  (s,) = 1
+  (...,s,) = n + 1 where n = (...)
 
   The numbers are defined recursively to the left so that the
-  empty tuple in every number is always the first element and
-  can be easily discarded (e.g. for addition).
+  rightmost "empty tuple" in every number can be easily
+  discarded (e.g. for addition).
  
   To be compatible with dup, pop, etc., arithmetic operations
   are defined to act on a tuple of numbers (i.e. a tuple of
@@ -70,10 +69,13 @@
 #define zero ()
 
 // add 1 to the top element
-#define succ(n, ...) (($ n, s), __VA_ARGS__)
+#define succ(n, ...) ((s _ n), __VA_ARGS__)
+
+// subtract 1 from the top element
+#define pred(n, ...) (pop n, __VA_ARGS__)
 
 // add the top two elements
-#define plus(n, m, ...) (($ n, $ pop m), __VA_ARGS__)
+#define plus(n, m, ...) (($ n $ m), __VA_ARGS__)
 
 /*
   Boolean values are just encoded as the strings 'true' and 'false'.
@@ -85,6 +87,9 @@
 
 // is the top item an empty tuple?
 #define isempty(x, ...) (false x, __VA_ARGS__)
+
+// is the top item zero?
+#define iszero(x, ...) (false x, __VA_ARGS__)
 
 // Church encoding of boolean values
 #define iftrue(x, y, ...) (x, __VA_ARGS__)
@@ -102,8 +107,9 @@
   Use conditional expressions to build more complicated arithmetic operators.
 */
 
-// subtract 1 from the top element
-#define pred(n, ...) if nop nop nop (top isempty (pop pop n), zero, ($ zero _ pop pop n), __VA_ARGS__)
+#define mult(n, m, ...) if nop (top iszero (n), \
+  zero, \
+  top plus (m, top mult (top pred (n), m)), __VA_ARGS__)
 
 /*
   The definitions above need to persist across preprocessor passes.
