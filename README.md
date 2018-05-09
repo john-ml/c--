@@ -24,13 +24,17 @@ pop pop pop (0, 1, 2, 3)
 ```
 
 A nice property of this setup is that functions are only evaluated when adjacent to data. This allows
-for some higher order functions:
+for some higher order functions. For example
 ```C
 // map ((\(a, a) -> a * a) . (\a -> (a, a))) [3, 4, 5] = [9, 16, 25]
 // (s, s, s, ) is a Church encoding of 3
 map compose (mult, dup, ((s, s, s, ), (s, s, s, s, ), (s, s, s, s, s, )))
 ```
-((s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, ), )
+gives
+```C
+ #include "examples.h"
+(((s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, )), )
+```
 
 [examples.cmm](https://github.com/johnli0135/c--/blob/master/tuple/examples.cmm) contains some sample code.
 

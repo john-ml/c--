@@ -2,7 +2,7 @@
 // need to persist across preprocessor passes
 #include "examples.h"
 
-#if 1
+#if 0
 cyc cyc cyc (1, 2, 3, 4, 5)
 
 // nop necessary to make preprocessor wait for the _'s to finish
@@ -91,8 +91,9 @@ foldr (plus, zero, ((s, ), (s, s, ), (s, s, s, )))
 // Finishes in 43 passes (but the 2nd to last pass involves a huge amount
 // of text, since all computation has been delayed until then)
 foldr nop4 (mult, (s, ), succ dup succ dup succ dup succ dup ((s, )))
-#endif
 
 // foldl (*) 1 [1, 2, 3, 4, 5] = 120
 // Finishes in 133 passes, but never accumulates computations like foldr
 foldl nop4 (mult, (s, ), succ dup succ dup succ dup succ dup ((s, )))
+#endif
+map compose (mult, dup, ((s, s, s, ), (s, s, s, s, ), (s, s, s, s, s, )))
