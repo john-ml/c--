@@ -90,9 +90,10 @@ foldr (plus, zero, ((s, ), (s, s, ), (s, s, s, )))
 // foldr (*) 1 [1, 2, 3, 4, 5] = 120
 // Finishes in 43 passes (but the 2nd to last pass involves a huge amount
 // of text, since all computation has been delayed until then)
-foldr nop32 (mult, (s, ), succ dup succ dup succ dup succ dup ((s, )))
+foldr nop4 (mult, (s, ), succ dup succ dup succ dup succ dup ((s, )))
 #endif
 
-// foldl (*) 1 [1, 2, 3, 4, 5, 6] = 720
-// Finishes in 161 passes, but never accumulates computations like foldr
-foldl nop32 (mult, (s, ), succ dup succ dup succ dup succ dup succ dup ((s, )))
+// foldl (*) 1 [1, 2, 3, 4, 5] = 120
+// Finishes in 133 passes, but never accumulates computations like foldr
+foldl nop4 (mult, (s, ), succ dup succ dup succ dup succ dup ((s, )))
+
