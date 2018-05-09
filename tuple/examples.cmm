@@ -53,4 +53,7 @@ mult mult mult mult dup dup dup dup ((s, s, s,))
 minus ((s, s, s, s, s,), (s, s, s,))
 
 // 5^2 - 3^2 = 16
-minus mult dup ((s, s, s, s, s,) _ mult dup ((s, s, s,)))
+minus mult dup ((s, s, s, s, s,), top mult dup ((s, s, s,)))
+
+// 4^2 = 16
+pow ((s, s, s, s,), (s, s,))
