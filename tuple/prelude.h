@@ -58,7 +58,7 @@
 
   The numbers are defined recursively to the left so that the
   rightmost "empty tuple" in every number can be easily
-  discarded (e.g. for addition).
+  discarded for addition.
  
   To be compatible with dup, pop, etc., arithmetic operations
   are defined to act on a tuple of numbers (i.e. a tuple of
@@ -121,6 +121,19 @@
 #define pow(n, m, ...) if nop (top iszero (m), \
   (s,), \
   top mult (n, top pow (n, top pred (m))), __VA_ARGS__)
+
+/*
+  Lists are just tuples.
+*/
+
+// get the first item of the list at the top
+#define head(xs, ...) (top xs, __VA_ARGS__)
+
+// discard the first item of the list at the top
+#define tail(xs, ...) (pop xs, __VA_ARGS__)
+
+// concatenate two lists
+#define concat(xs, ys, ...) (($ xs, $ ys), __VA_ARGS__)
 
 /*
   The definitions above need to persist across preprocessor passes.

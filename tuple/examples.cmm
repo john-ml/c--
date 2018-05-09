@@ -49,6 +49,9 @@ mult ((s,s,s,s,s,s,s,s,s,), (s,s,s,s,))
 // 3 * 3 * 3 * 3 * 3 = 243
 mult mult mult mult dup dup dup dup ((s, s, s,))
 
+// 3^5 = 243
+pow ((s, s, s,), (s, s, s, s, s,))
+
 // 5 - 3 = 2
 minus ((s, s, s, s, s,), (s, s, s,))
 
@@ -57,3 +60,6 @@ minus mult dup ((s, s, s, s, s,), top mult dup ((s, s, s,)))
 
 // 4^2 = 16
 pow ((s, s, s, s,), (s, s,))
+
+// tail ([1, 2, 3] ++ [4, 5, 6])
+tail concat ((1, 2, 3), (4, 5, 6))
