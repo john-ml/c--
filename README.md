@@ -32,7 +32,6 @@ map compose (mult, dup, ((s, s, s, ), (s, s, s, s, ), (s, s, s, s, s, )))
 ```
 gives
 ```C
- #include "examples.h"
 (((s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, )), )
 ```
 
