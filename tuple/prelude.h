@@ -109,8 +109,10 @@
 
 // subtract the second element from the first
 #define minus(n, m, ...) if nop (top iszero (m), \
-  n, \
-  top minus (top pred (n), top pred (m)), __VA_ARGS__)
+  top if nop (top iszero (n), \
+    zero, \
+    n, \
+  ), top minus (top pred (n), top pred (m)), __VA_ARGS__)
 
 // multiply the top two elements together
 #define mult(n, m, ...) if nop (top iszero (n), \
@@ -134,6 +136,20 @@
 
 // concatenate two lists
 #define concat(xs, ys, ...) (($ xs, $ ys), __VA_ARGS__)
+
+/*
+  Since "functions" like head, tail, etc are only evaluated when
+  immediately followed by a parenthesis, the tokens themselves
+  can sort of behave like higher order functions.
+*/
+
+// apply f to each element in the list l
+#define map(f, l, ...) if nop (top isempty (l), \
+  (), \
+  top if nop2 (top isempty tail (l), \
+    (top f l), \
+    (top f l, $ top map (f, top tail (l))) \
+  ), __VA_ARGS__)
 
 /*
   The definitions above need to persist across preprocessor passes.
