@@ -15,6 +15,18 @@ output.write("""/*
 // store TMP in MEM[arg] .. MEM[arg + WORD_SIZE - 1]
 #define STORE 1
 
+// TMP[0 .. WORD_SIZE-1] &= MEM[arg + (0 .. WORD_SIZE-1)]
+#define AND 2
+
+// TMP[0 .. WORD_SIZE-1] |= MEM[arg + (0 .. WORD_SIZE-1)]
+#define OR 3
+
+// invert all bits in TMP[0 .. WORD_SIZE-1]
+#define NOT 4
+
+// set IP = arg
+#define JMP 5
+
 // force above definitions to persist across preprocessor passes
 #define PERSIST #include __FILE__
 PERSIST
@@ -137,10 +149,17 @@ generate(inc_ptrs)
 output.write("""
 // Needed to reference data in memory
 #define CAT(a, b) a ## b
-#define QUERY(i) IF CAT(MEM_, i) == 
-#define EQUERY(i) ELIF CAT(MEM_, i) ==
+#define EQUALS(i, j) IF CAT(MEM_, i) == j
+#define EEQUALS(i, j) ELIF CAT(MEM_, i) == j
 #define GET(i, j) DEFINE CAT(tmp_, i) CAT(MEM_, j)
 #define SET(i, j) DEFINE CAT(mem_, i) CAT(TMP_, j)
+#define HIGH(i) DEFINE CAT(tmp_, i) 1
+#define LOW(i) DEFINE CAT(tmp_, i) 0
+#define BOTHTRUE(i, j) IF (CAT(MEM_, i) != 0) && (CAT(TMP_, j) != 0)
+#define BOTHFALSE(i, j) IF (CAT(MEM_, i) == 0) && (CAT(TMP_, j) == 0)
+#define TMPTRUE(i) IF CAT(TMP_, i) != 0
+#define MEMTRUE(i) IF CAT(MEM_, i) != 0
+#define SETPTR(p, i) DEFINE p CAT(MEM_, i)
 """)
 
 # given a dictionary { instruction_name: handler(upcase) }, emit
@@ -149,32 +168,74 @@ output.write("""
 def step(handlers, upcase):
     if not upcase:
         return
-    directive = "QUERY"
+    directive = "EQUALS"
     for instruction in handlers:
         handler = handlers[instruction]
-        output.write("%s(IP) %s\n" % (directive, instruction))
+        output.write("%s(IP, %s)\n" % (directive, instruction))
         handler()
-        directive = "EQUERY"
+        directive = "EEQUALS"
     output.write("ENDIF\n")
+
+# generic handler for a binary operator
+# f(i, j) is a function that emits code to perform the relevant
+# operation for memory location i and bit index j
+def handle_generic_op(f):
+    directive = "EQUALS"
+    for i in range(MEM_SIZE):
+        output.write("%s(AP, %d)\n" % (directive, i))
+        for j in range(WORD_SIZE):
+            f(i, j)
+        directive = "EEQUALS"
+    output.write("ENDIF\n")    
 
 # handle the LOAD instruction
 def handle_load():
-    directive = "QUERY"
-    for i in range(MEM_SIZE):
-        output.write("%s(AP) %d\n" % (directive, i))
-        for j in range(WORD_SIZE):
-            output.write("GET(%d, %d)\n" % (j, i * WORD_SIZE + j))
-        directive = "EQUERY"
-    output.write("ENDIF\n")    
+    def f(i, j):
+        output.write("GET(%d, %d)\n" % (j, i * WORD_SIZE + j))
+    handle_generic_op(f)
 
 # handle the STORE instruction
 def handle_store():
-    directive = "QUERY"
-    for i in range(MEM_SIZE):
-        output.write("%s(AP) %d\n" % (directive, i))
-        for j in range(WORD_SIZE):
-            output.write("SET(%d, %d)\n" % (i * WORD_SIZE + j, j))
-        directive = "EQUERY"
+    def f(i, j):
+        output.write("SET(%d, %d)\n" % (i * WORD_SIZE + j, j))
+    handle_generic_op(f)
+
+# handle the AND instruction
+def handle_and():
+    def f(i, j):
+        output.write("BOTHTRUE(%d, %d)\n" % (i * WORD_SIZE + j, j))
+        output.write("HIGH(%d)\n" % j)
+        output.write("ELSE\n")
+        output.write("LOW(%d)\n" % j)
+        output.write("ENDIF\n")
+    handle_generic_op(f)
+
+# handle the OR instruction
+def handle_or():
+    def f(i, j):
+        output.write("BOTHFALSE(%d, %d)\n" % (i * WORD_SIZE + j, j))
+        output.write("LOW(%d)\n" % j)
+        output.write("ELSE\n")
+        output.write("HIGH(%d)\n" % j)
+        output.write("ENDIF\n")
+    handle_generic_op(f)
+
+def handle_not():
+    for j in range(WORD_SIZE):
+        output.write("TMPTRUE(%d)\n" % j)
+        output.write("LOW(%d)\n" % j)
+        output.write("ELSE\n")
+        output.write("HIGH(%d)\n" % j)
+        output.write("ENDIF\n")
+
+def handle_jmp():
+    directive = "EQUALS"
+    output.write("SETPTR(ip, AP)\n")
+    n = MEM_SIZE * WORD_SIZE
+    for i in range(n):
+        output.write("%s(AP, %d)\n" % (directive, i))
+        output.write("DEFINE ap %d\n" % ((i + 1) % n))
+        directive = "EEQUALS"
     output.write("ENDIF\n")    
 
 # wrap all generating code into a nice function for generate()
@@ -182,6 +243,10 @@ def curried_step(upcase):
     handlers = {
         "LOAD": handle_load,
         "STORE": handle_store,
+        "AND": handle_and,
+        "OR": handle_or,
+        "NOT": handle_not,
+        "JMP": handle_jmp
     }
     return step(handlers, upcase)
 

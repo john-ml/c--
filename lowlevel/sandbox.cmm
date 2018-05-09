@@ -10,3 +10,9 @@ try(a, b)
 ELSE
   false
 ENDIF
+
+#if (a3 != 0) && (b != 0)
+  true
+#else
+  false
+#endif

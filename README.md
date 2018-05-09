@@ -35,7 +35,7 @@ The generated files (in particular, [vm.h](https://github.com/johnli0135/c--/blo
 Programs can be written by directly modifying the initial memory layout. This can be done by including a modified
 copy of [init_template.h](https://github.com/johnli0135/c--/blob/master/lowlevel/init_template.h) with the proper instructions
 filled in. For example, the following initialization, designed for a VM with word size 4 and memory size 3,
-will store the string `1111` in memory address `1` (i.e., `MEM_4` .. `MEM_7`):
+will store the string `1111` in memory address `1` (i.e., `MEM_4` .. `MEM_7`) and then hang indefinitely:
 
 ```C
 /*
@@ -58,7 +58,7 @@ will store the string `1111` in memory address `1` (i.e., `MEM_4` .. `MEM_7`):
 // initialize main memory
 #define MEM_0 STORE
 #define MEM_1 1
-#define MEM_2 0
+#define MEM_2 JMP
 #define MEM_3 0
 #define MEM_4 0
 #define MEM_5 0
