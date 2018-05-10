@@ -16,24 +16,24 @@
 #define AP_0011 0111
 
 // initialize temp register
-#define TMP_0000 1
-#define TMP_0001 1
-#define TMP_0010 1
-#define TMP_0011 1
+#define TMP_0000 0
+#define TMP_0001 0
+#define TMP_0010 0
+#define TMP_0011 0
 
 // initialize main memory
-#define MEM_0000 STORE_0
-#define MEM_0001 STORE_1
-#define MEM_0010 STORE_2
-#define MEM_0011 STORE_3
+#define MEM_0000 0
+#define MEM_0001 0
+#define MEM_0010 0
+#define MEM_0011 0
 #define MEM_0100 0
-#define MEM_0101 1
+#define MEM_0101 0
 #define MEM_0110 0
 #define MEM_0111 0
-#define MEM_1000 JMP_0
-#define MEM_1001 JMP_1
-#define MEM_1010 JMP_2
-#define MEM_1011 JMP_3
+#define MEM_1000 0
+#define MEM_1001 0
+#define MEM_1010 0
+#define MEM_1011 0
 #define MEM_1100 0
 #define MEM_1101 0
 #define MEM_1110 0

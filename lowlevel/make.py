@@ -4,8 +4,8 @@ MEM_SIZE = 5
 WORD_SIZE = 4
 
 # convert an integer i into a zero-padded binary representation
-def binarize(i):
-    return "{0:b}".format(i).zfill(WORD_SIZE)
+def binarize(i, word_size=WORD_SIZE):
+    return "{0:b}".format(i).zfill(word_size)
 
 # write output of size n given by f(i, b) where i is an integer
 # and b is its binarized representation
@@ -30,31 +30,36 @@ output.write("""/*
 */
 """)
 
-# define an instruction given a name and opcode
-def instruction(name, opcode):
-    binarized = binarize(opcode)
+# define an instruction given a name 
+def instruction(name):
+    binarized = binarize(instruction.opcode)
     output.write("#define %s %s\n" % (name, binarized))
     write_word_block(lambda i, b:
         output.write("#define %s_%d %s\n" % (name, i, binarized[i]))
     )
+    instruction.opcode += 1
+instruction.opcode = 0
 
 output.write("\n// store MEM[arg] .. MEM[arg + WORD_SIZE - 1] in TMP\n")
-instruction("LOAD", 0)
+instruction("LOAD")
+
+output.write("\n// store arg in TMP\n")
+instruction("LOADIMM")
 
 output.write("\n// store TMP in MEM[arg] .. MEM[arg + WORD_SIZE - 1]\n")
-instruction("STORE", 1)
+instruction("STORE")
 
 output.write("\n// TMP[0 .. WORD_SIZE-1] &= MEM[arg + (0 .. WORD_SIZE-1)]\n")
-instruction("AND", 2)
+instruction("AND")
 
 output.write("\n// TMP[0 .. WORD_SIZE-1] |= MEM[arg + (0 .. WORD_SIZE-1)]\n")
-instruction("OR", 3)
+instruction("OR")
 
 output.write("\n// invert all bits in TMP[0 .. WORD_SIZE-1]\n")
-instruction("NOT", 4)
+instruction("NOT")
 
 output.write("\n// set IP = arg\n")
-instruction("JMP", 5)
+instruction("JMP")
 
 output.write("""
 // force above definitions to persist across preprocessor passes
@@ -196,6 +201,7 @@ output.write("""
 #define EQUALS(i, j) IF i == j
 #define EEQUALS(i, j) ELIF i == j
 #define GET(i, j) DEFINE CAT(tmp_, i) CAT(MEM_, j)
+#define SETIMM(i, j) DEFINE CAT(tmp_, i) j
 #define SET(i, j) DEFINE CAT(mem_, i) CAT(TMP_, j)
 #define HIGH(i) DEFINE CAT(tmp_, i) 1
 #define LOW(i) DEFINE CAT(tmp_, i) 0
@@ -227,22 +233,8 @@ def condexpr(directive, var, const):
 extract("I", "INSTR")
 extract("A", "ARG")
 
-# given a dictionary { instruction_name: handler(upcase) }, emit
-# code that executes instructions based on the value of MEM[IP]
-# for the corresponding value of upcase
-def step(handlers, upcase):
-    if not upcase:
-        return
-    directive = "EQUALS"
-    for instruction in handlers:
-        handler = handlers[instruction]
-        condexpr(directive, "INSTR", instruction)
-        handler()
-        directive = "EEQUALS"
-    output.write("ENDIF\n")
-
 # generic handler for a binary operator
-# f(i, j, k, b, c) is a function that emits code to perform the relevant
+# f(i, j, k, bi, bj, bk) is a function that emits code to perform the relevant
 # operation for memory location i and bit index j
 # k = i * WORD_SIZE + j
 # with binarized equivalents bi, bj, bk
@@ -267,6 +259,12 @@ def handle_load():
     def f(i, j, k, bi, bj, bk):
         output.write("GET(%s, %s)\n" % (bj, bk))
     handle_generic_op(f)
+
+# handle the LOADIMM instruction
+def handle_loadimm():
+    write_word_block(lambda i, b: output.write(
+        "SETIMM(%s, EVAL(DEFER(CAT)(MEM_, AP_%s)))\n" % (b, b)
+    ))
 
 # handle the STORE instruction
 def handle_store():
@@ -314,10 +312,25 @@ def handle_jmp():
         directive = "EEQUALS"
     output.write("ENDIF\n")    
 
+# given a dictionary { instruction_name: handler(upcase) }, emit
+# code that executes instructions based on the value of MEM[IP]
+# for the corresponding value of upcase
+def step(handlers, upcase):
+    if not upcase:
+        return
+    directive = "EQUALS"
+    for instruction in handlers:
+        handler = handlers[instruction]
+        condexpr(directive, "INSTR", instruction)
+        handler()
+        directive = "EEQUALS"
+    output.write("ENDIF\n")
+
 # wrap all generating code into a nice function for generate()
 def curried_step(upcase):
     handlers = {
         "LOAD": handle_load,
+        "LOADIMM": handle_loadimm,
         "STORE": handle_store,
         "AND": handle_and,
         "OR": handle_or,
@@ -337,3 +350,6 @@ output.write("""
 PERSIST
 """)
 output.close()
+
+if __name__ == "__main__":
+    print("hi")
