@@ -21,7 +21,7 @@ for arg in sys.argv:
         outfile = arg.split("=")[1]
     elif isflag(arg, "w", "word-size"):
         word_size = int(arg.split("=")[1])
-    elif isflag(arg, "m", "memory-size"):
+    elif isflag(arg, "m", "mem-size"):
         mem_size = int(arg.split("=")[1])
     else:
         argv.append(arg)
