@@ -106,6 +106,6 @@ for line in infile:
 
 # pad the rest of memory with zeros
 for i in range(mem_ptr, word_size * mem_size):
-    write("$define MEM_%s 0\n" % binarize(i, word_size))
+    write("#define MEM_%s 0\n" % binarize(i, word_size))
         
 done()
