@@ -124,6 +124,19 @@
   (s, ), \
   top mult (n, top pow (n, top pred (m))), __VA_ARGS__)
 
+// is (n <= m)?
+#define leq(n, m, ...) iszero nop2 minus (n, m, __VA_ARGS__)
+
+// is (n >= m)?
+#define geq(n, m, ...) iszero nop2 minus (m, n, __VA_ARGS__)
+
+// is (n == m)?
+#define eq(n, m, ...) if nop (top iszero (m), \
+  top if nop (top iszero (n), \
+    true, \
+    false, \
+  ), top eq (top pred (n), top pred (m)), __VA_ARGS__)
+
 /*
   Lists are just tuples.
 */

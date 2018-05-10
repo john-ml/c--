@@ -94,6 +94,17 @@ foldr nop4 (mult, (s, ), succ dup succ dup succ dup succ dup ((s, )))
 
 // foldl (*) 1 [1, 2, 3, 4, 5] = 120
 // Finishes in 133 passes, but never accumulates computations like foldr
-foldl nop4 (mult, (s, ), succ dup succ dup succ dup succ dup ((s, )))
+foldl nop4 (mult, (s, ), succ dup succ dup succ dup succ dup succ dup succ dup ((s, )))
+
+// comparisons
+leq ((s, s, s,), (s, s, s, s, s,))
+leq (zero, (s, ))
+leq (zero, zero)
+leq ((s, ), zero)
+
 #endif
-map compose (mult, dup, ((s, s, s, ), (s, s, s, s, ), (s, s, s, s, s, )))
+// 3 == 3 = True
+eq ((s, s, s, ), (s, s, s, ))
+
+// 10 * 8 == 4 * 20 = True
+eq mult ((s, s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, ), top mult ((s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, )))
