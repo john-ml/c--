@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+W=$2
+M=$3
+
+python make.py $W $M
+python asm.py -o=init.h -w=$W -m=$M "$1"
+

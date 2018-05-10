@@ -1,7 +1,8 @@
 # This script generates consts.h, init_template.h, vm.h 
+import sys
 
-MEM_SIZE = 10
-WORD_SIZE = 4
+WORD_SIZE = int(sys.argv[1])
+MEM_SIZE = int(sys.argv[2])
 
 # convert an integer i into a zero-padded binary representation
 def binarize(i, word_size=WORD_SIZE):

@@ -1,10 +1,12 @@
 import sys
-from make import binarize
 
 argv = []
 outfile = None
 word_size = None
 mem_size = None
+
+def binarize(i, word_size=word_size):
+    return "{0:b}".format(i).zfill(word_size)
 
 def isflag(s, abbreviated, full):
     return s.startswith("-%s=" % abbreviated) or s.startswith("--%s=" % full)
