@@ -109,3 +109,13 @@ in the right order and passing the resulting file to `c--`:
 #include "vm.h"
 ```
 
+Proper initialization can be automated to some extent by [asm.py](https://github.com/johnli0135/c--/blob/master/lowlevel/asm.py), which can convert input like the following into the above init file:
+
+```asm
+; store TMP into address 5, then hang
+; assemble with `python asm.py --word-size=4 --mem-size=6`
+    
+store 5
+jmp 0
+```
+
