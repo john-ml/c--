@@ -137,6 +137,16 @@
     false, \
   ), top eq (top pred (n), top pred (m)), __VA_ARGS__)
 
+// is (n < m)?
+#define lt(n, m, ...) if nop (top iszero (n), \
+  top if nop (top iszero (m), \
+    false, \
+    true, \
+  ), top lt (top pred (n), top pred (m)), __VA_ARGS__)
+
+// is (n > m)?
+#define gt(n, m, ...) lt (m, n, __VA_ARGS__)
+
 /*
   Lists are just tuples.
 */

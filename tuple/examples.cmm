@@ -102,9 +102,15 @@ leq (zero, (s, ))
 leq (zero, zero)
 leq ((s, ), zero)
 
-#endif
 // 3 == 3 = True
 eq ((s, s, s, ), (s, s, s, ))
 
 // 10 * 8 == 4 * 20 = True
 eq mult ((s, s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, ), top mult ((s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, )))
+
+// 10 * 8 + 1 < 4 * 20 = False
+lt succ mult ((s, s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, ), top mult ((s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, )))
+
+// 10 * 8 + 1 > 4 * 20 = True
+gt succ mult ((s, s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, ), top mult ((s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, )))
+#endif
