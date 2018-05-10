@@ -48,7 +48,7 @@ else:
     close_infile = infile.close
 
 if outfile is None:
-    write = print
+    write = sys.stdout.write
     close_writer = lambda: None
 else:
     output = open(outfile, "w")
@@ -62,9 +62,9 @@ def done(code=0):
 
 for i in range(word_size):
     b = binarize(i, word_size)
-    write("#define IP_%s %s" % (b, b))
-    write("#define AP_%s %s" % (b, binarize(word_size + i, word_size)))
-    write("#define TMP_%s 0" % b)
+    write("#define IP_%s %s\n" % (b, b))
+    write("#define AP_%s %s\n" % (b, binarize(word_size + i, word_size)))
+    write("#define TMP_%s 0\n" % b)
 
 mem_ptr = 0
 for line in infile:
@@ -88,7 +88,7 @@ for line in infile:
         if mem_ptr >= word_size * mem_size:
             print("Error: not enough memory for executable.")
             done(1)
-        write("#define MEM_%s %s_%d" % (
+        write("#define MEM_%s %s_%d\n" % (
             binarize(mem_ptr, word_size),
             op.upper(),
             i
@@ -98,7 +98,7 @@ for line in infile:
         if mem_ptr >= word_size * mem_size:
             print("Error: not enough memory for executable.")
             done(1)
-        write("#define MEM_%s %s" % (
+        write("#define MEM_%s %s\n" % (
             binarize(mem_ptr, word_size),
             arg[i]
         ))
@@ -106,6 +106,6 @@ for line in infile:
 
 # pad the rest of memory with zeros
 for i in range(mem_ptr, word_size * mem_size):
-    write("$define MEM_%s 0" % binarize(i, word_size))
+    write("$define MEM_%s 0\n" % binarize(i, word_size))
         
 done()

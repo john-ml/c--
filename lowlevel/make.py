@@ -1,6 +1,6 @@
 # This script generates consts.h, init_template.h, vm.h 
 
-MEM_SIZE = 5
+MEM_SIZE = 10
 WORD_SIZE = 4
 
 # convert an integer i into a zero-padded binary representation

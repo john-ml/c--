@@ -1,4 +1,5 @@
 #include "consts.h"
-#include "init_template.h"
+// #include "init_template.h"
+#include "1111_and_hang.h"
 #include "vm.h"
 
