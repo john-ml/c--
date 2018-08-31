@@ -42,10 +42,11 @@ gives
 
 More examples [here](https://github.com/johnli0135/c--/blob/master/tuple/examples.cmm).
 
-## Computing with low level constructs
+## Computing with a virtual machine
 
-The [lowlevel approach](https://github.com/johnli0135/c--/blob/master/lowlevel/) uses lots of variables
-to maintain a virtual machine that includes an instruction pointer, a temporary register, and RAM.
+We can also use lots of variables to maintain a
+[virtual machine](https://github.com/johnli0135/c--/blob/master/lowlevel/)
+that includes an instruction pointer, a temporary register, and RAM.
 
 [make.py](https://github.com/johnli0135/c--/blob/master/lowlevel/make.py) generates, given a fixed word size
 and memory size, preprocessor code responsible for maintaining the state of the virtual machine and loading
