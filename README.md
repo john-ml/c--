@@ -12,18 +12,22 @@ Verbosity levels:
 
 ## Computing with tuples
 
-The [tuple approach](https://github.com/johnli0135/c--/blob/master/tuple/) uses parameter lists
-as tuples to represent data and variadic macros to represent operators that act on stacks.
+We can use parameter lists as [tuples](https://github.com/johnli0135/c--/blob/master/tuple/)
+to represent data and variadic macros to represent operators that act on stacks.
 
 [prelude.h](https://github.com/johnli0135/c--/blob/master/tuple/prelude.h) defines some useful constructs
 like stacks/lists, natural numbers, arithmetic, predicates, and conditional execution.
 
-For example, the following evaluates to `(3)`:
+For example,
 ```C
 pop pop pop (0, 1, 2, 3)
 ```
+evaluates to
+```C
+(3)
+```
 
-A nice property of this setup is that functions are only evaluated when adjacent to data. This allows
+One nice thing about this is that functions are only evaluated when adjacent to data. This allows
 for some higher order functions. For example
 ```C
 // map ((\(a, a) -> a * a) . (\a -> (a, a))) [3, 4, 5] = [9, 16, 25]
@@ -33,9 +37,10 @@ map compose (mult, dup, ((s, s, s, ), (s, s, s, s, ), (s, s, s, s, s, )))
 gives
 ```C
 (((s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, ), (s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, )), )
+// [9, 16, 25]
 ```
 
-[examples.cmm](https://github.com/johnli0135/c--/blob/master/tuple/examples.cmm) contains additional examples.
+More examples [here](https://github.com/johnli0135/c--/blob/master/tuple/examples.cmm).
 
 ## Computing with low level constructs
 
